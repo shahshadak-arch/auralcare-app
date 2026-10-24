@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuralCare - Interactive Hearing Health & Diagnostics</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Audiogram -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            teal: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            },
+            medical: {
+              navy: '#0f172a',
+              blue: '#1e3a8a',
+              softBg: '#f8fafc',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .tab-active {
+      border-bottom: 3px solid #0d9488;
+      color: #0d9488;
+      font-weight: 600;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP DISCLAIMER BAR -->
+  <div class="bg-amber-500 text-slate-900 px-4 py-2 text-xs md:text-sm font-medium text-center shadow-sm">
+    <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+    <strong>Medical Disclaimer:</strong> This application provides self-assessment screening and educational guidance. It is not a substitute for professional clinical diagnosis by an ENT specialist or Audiologist.
+  </div>
+
+  <!-- NAVIGATION HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <!-- Logo -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('assessment')">
+          <div class="w-11 h-11 bg-gradient-to-tr from-teal-600 to-teal-400 rounded-xl flex items-center justify-center text-white shadow-md">
+            <i class="fa-solid fa-ear-deaf text-2xl"></i>
+          </div>
+          <div>
+            <span class="text-2xl font-bold text-slate-900 tracking-tight">Aural<span class="text-teal-600">Care</span></span>
+            <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Hearing & Ear Health Suite</span>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="hidden md:flex space-x-6 text-sm font-medium text-slate-600">
+          <button id="nav-assessment" onclick="switchTab('assessment')" class="tab-btn py-6 px-1 hover:text-teal-600 transition">
+            <i class="fa-solid fa-square-poll-vertical mr-1.5"></i> Hearing Assessment
+          </button>
+          <button id="nav-wound" onclick="switchTab('wound')" class="tab-btn py-6 px-1 hover:text-teal-600 transition">
+            <i class="fa-solid fa-bandage mr-1.5"></i> Ear Wounds & Symptoms
+          </button>
+          <button id="nav-remedies" onclick="switchTab('remedies')" class="tab-btn py-6 px-1 hover:text-teal-600 transition">
+            <i class="fa-solid fa-pills mr-1.5"></i> Treatments & Natural Remedies
+          </button>
+          <button id="nav-catalog" onclick="switchTab('catalog')" class="tab-btn py-6 px-1 hover:text-teal-600 transition">
+            <i class="fa-solid fa-assistive-listening-systems mr-1.5"></i> Hearing Aids
+          </button>
+        </nav>
+
+        <!-- Emergency Action Header Button -->
+        <div>
+          <button onclick="openEmergencyModal()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs sm:text-sm px-3.5 py-2 rounded-lg font-semibold flex items-center space-x-2 transition shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation text-red-600 animate-pulse"></i>
+            <span>Red Flag Symptoms</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="md:hidden border-t border-slate-200 bg-slate-50 flex justify-around py-2 text-xs font-medium text-slate-600">
+      <button onclick="switchTab('assessment')" class="p-2 flex flex-col items-center">
+        <i class="fa-solid fa-square-poll-vertical text-lg text-teal-600"></i>
+        <span>Assessment</span>
+      </button>
+      <button onclick="switchTab('wound')" class="p-2 flex flex-col items-center">
+        <i class="fa-solid fa-bandage text-lg text-teal-600"></i>
+        <span>Care & Wounds</span>
+      </button>
+      <button onclick="switchTab('remedies')" class="p-2 flex flex-col items-center">
+        <i class="fa-solid fa-pills text-lg text-teal-600"></i>
+        <span>Remedies</span>
+      </button>
+      <button onclick="switchTab('catalog')" class="p-2 flex flex-col items-center">
+        <i class="fa-solid fa-assistive-listening-systems text-lg text-teal-600"></i>
+        <span>Hearing Aids</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- ==================== SECTION 1: ASSESSMENT & AUDIO TEST ==================== -->
+    <section id="tab-assessment-content" class="tab-content space-y-8">
+      
+      <!-- Intro Hero Banner -->
+      <div class="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+        <div class="max-w-3xl relative z-10 space-y-4">
+          <span class="bg-teal-500/30 text-teal-200 border border-teal-400/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Interactive Tone Test & Symptom Screen</span>
+          <h1 class="text-2xl sm:text-4xl font-bold tracking-tight">Evaluate Your Hearing Capability & Ear Health</h1>
+          <p class="text-teal-100 text-sm sm:text-base leading-relaxed">
+            Use our dual evaluation protocol: a interactive pure-tone frequency hearing test using your headphones, followed by a clinical symptom screening survey.
+          </p>
+          <div class="flex flex-wrap gap-4 pt-2">
+            <a href="#audio-test-section" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold px-5 py-2.5 rounded-xl text-sm transition shadow-md flex items-center space-x-2">
+              <i class="fa-solid fa-headphones"></i>
+              <span>Start Headphones Tone Test</span>
+            </a>
+            <a href="#symptom-quiz-section" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition backdrop-blur-sm flex items-center space-x-2">
+              <i class="fa-solid fa-list-check"></i>
+              <span>Symptom Checklist</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Interactive Audio Tone Test -->
+      <div id="audio-test-section" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+              <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs flex items-center justify-center font-bold">1</span>
+              <span>Audio Frequency Hearing Screening</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Please connect stereo headphones, set device master volume to 50%, and sit in a quiet environment.</p>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-3 rounded-xl flex items-center space-x-2 max-w-sm">
+            <i class="fa-solid fa-volume-high text-amber-600 text-base"></i>
+            <span>Do not set volume to unsafe maximum levels to prevent sudden loud tones.</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Tone Controller -->
+          <div class="lg:col-span-6 bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-5">
+            
+            <!-- Ear Selector -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Selected Channel / Ear</label>
+              <div class="grid grid-cols-2 gap-3">
+                <button id="ear-left-btn" onclick="selectEar('left')" class="py-2.5 px-4 rounded-xl border border-teal-600 bg-teal-600 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-sm">
+                  <i class="fa-solid fa-left-long"></i>
+                  <span>Left Ear (L)</span>
+                </button>
+                <button id="ear-right-btn" onclick="selectEar('right')" class="py-2.5 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-sm flex items-center justify-center space-x-2 transition hover:bg-slate-100">
+                  <i class="fa-solid fa-right-long"></i>
+                  <span>Right Ear (R)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Frequency Picker -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Test Frequency (Hz)</label>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <button onclick="selectFreq(250)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500" data-freq="250">250Hz</button>
+                <button onclick="selectFreq(500)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500" data-freq="500">500Hz</button>
+                <button onclick="selectFreq(1000)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-teal-100 border-teal-600 text-teal-800" data-freq="1000">1000Hz</button>
+                <button onclick="selectFreq(2000)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500" data-freq="2000">2000Hz</button>
+                <button onclick="selectFreq(4000)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500" data-freq="4000">4000Hz</button>
+                <button onclick="selectFreq(8000)" class="freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500" data-freq="8000">8000Hz</button>
+              </div>
+            </div>
+
+            <!-- Volume Control dB -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Intensity (dB HL Equivalent)</label>
+                <span id="volume-label" class="text-sm font-bold text-teal-700">30 dB</span>
+              </div>
+              <input type="range" id="volume-slider" min="10" max="80" step="5" value="30" oninput="updateVolume(this.value)" class="w-full accent-teal-600 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
+                <span>10dB (Whisper)</span>
+                <span>40dB (Normal Talk)</span>
+                <span>80dB (Loud)</span>
+              </div>
+            </div>
+
+            <!-- Play / Response Actions -->
+            <div class="pt-2 space-y-3">
+              <button id="play-tone-btn" onclick="toggleTone()" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center space-x-2">
+                <i id="play-icon" class="fa-solid fa-play"></i>
+                <span id="play-btn-text">Play Tone</span>
+              </button>
+
+              <div class="grid grid-cols-2 gap-3">
+                <button onclick="recordAudioResponse(true)" class="py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold text-xs sm:text-sm rounded-xl transition border border-emerald-300 flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-check"></i>
+                  <span>I Heard It</span>
+                </button>
+                <button onclick="recordAudioResponse(false)" class="py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold text-xs sm:text-sm rounded-xl transition border border-rose-300 flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-xmark"></i>
+                  <span>Can't Hear It</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Live Audiogram Visualization -->
+          <div class="lg:col-span-6 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex-grow relative">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Live Audiogram Result Plot</h3>
+                <div class="flex items-center space-x-3 text-xs font-medium">
+                  <span class="text-blue-600"><i class="fa-solid fa-circle text-[10px]"></i> Left Ear</span>
+                  <span class="text-red-500"><i class="fa-solid fa-xmark"></i> Right Ear</span>
+                </div>
+              </div>
+              <div class="h-64 relative w-full">
+                <canvas id="audiogramChart"></canvas>
+              </div>
+            </div>
+            <div class="text-xs text-slate-500 bg-white p-3 rounded-xl border border-slate-200">
+              <strong class="text-slate-700">Audiogram Guide:</strong> Lower curves on the graph indicate reduced hearing sensitivity at that specific pitch/frequency.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Symptom Assessment Survey -->
+      <div id="symptom-quiz-section" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs flex items-center justify-center font-bold">2</span>
+            <span>Clinical Ear & Hearing Symptom Survey</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Select all conditions you have experienced over the past 2-4 weeks.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="tinnitus" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Ringing or Buzzing (Tinnitus)</span>
+              <span class="text-xs text-slate-500">Constant or intermittent high-pitched ringing, clicking, or roaring in ears.</span>
+            </div>
+          </label>
+
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="muffled" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Muffled Speech & Words</span>
+              <span class="text-xs text-slate-500">Difficulty understanding conversations, especially with background noise.</span>
+            </div>
+          </label>
+
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="pain" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Ear Pain or Aching</span>
+              <span class="text-xs text-slate-500">Sharp, dull, or throbbing sensation inside or around the outer ear canal.</span>
+            </div>
+          </label>
+
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="discharge" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Fluid / Discharge</span>
+              <span class="text-xs text-slate-500">Clear fluid, yellow pus, or foul-smelling drainage coming from ear canal.</span>
+            </div>
+          </label>
+
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="fullness" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Eustachian / Pressure Fullness</span>
+              <span class="text-xs text-slate-500">Feeling like ear is plugged up, similar to altitude change pressure.</span>
+            </div>
+          </label>
+
+          <label class="symptom-card border border-slate-200 rounded-xl p-4 flex items-start space-x-3 cursor-pointer hover:border-teal-500 transition bg-slate-50/50">
+            <input type="checkbox" value="dizziness" class="symptom-checkbox mt-1 accent-teal-600 rounded">
+            <div>
+              <span class="font-semibold text-sm text-slate-800 block">Dizziness / Vertigo</span>
+              <span class="text-xs text-slate-500">Spinning sensation, balance loss, or lightheadedness linked to ears.</span>
+            </div>
+          </label>
+
+        </div>
+
+        <!-- Submit Evaluation -->
+        <div class="pt-4 flex justify-end">
+          <button onclick="generateAssessmentResult()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg flex items-center space-x-2">
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Analyze Overall Results</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Assessment Result Modal Output Card -->
+      <div id="assessment-result-card" class="hidden bg-white border border-teal-200 rounded-2xl p-6 sm:p-8 shadow-md space-y-6">
+        <div class="flex justify-between items-start border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-xs font-bold text-teal-700 uppercase tracking-widest">Diagnostic Report Summary</span>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">Your Preliminary Assessment Findings</h3>
+          </div>
+          <button onclick="window.print()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg font-semibold flex items-center space-x-1">
+            <i class="fa-solid fa-print"></i>
+            <span>Print Report</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-headphones text-teal-600"></i>
+              <span>Hearing Capability Analysis</span>
+            </h4>
+            <div id="hearing-status-text" class="text-sm font-semibold text-slate-700">
+              <!-- JS Populated -->
+            </div>
+            <p id="hearing-status-desc" class="text-xs text-slate-600 leading-relaxed">
+              <!-- JS Populated -->
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-notes-medical text-teal-600"></i>
+              <span>Symptom Screening Flags</span>
+            </h4>
+            <ul id="symptom-findings-list" class="text-xs text-slate-600 space-y-2">
+              <!-- JS Populated -->
+            </ul>
+          </div>
+        </div>
+
+        <div class="bg-teal-50 border border-teal-200 rounded-xl p-4 text-xs text-teal-900 flex items-start space-x-3">
+          <i class="fa-solid fa-user-doctor text-teal-600 text-lg mt-0.5"></i>
+          <div>
+            <strong class="block font-semibold mb-0.5">Recommended Next Steps:</strong>
+            <span id="recommended-next-step">Based on your entries, explore remedies or consult an ENT clinic.</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== SECTION 2: EAR WOUNDS & SYMPTOMS DIAGNOSTIC ==================== -->
+    <section id="tab-wound-content" class="tab-content hidden space-y-8">
+      
+      <div class="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="space-y-2">
+          <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Ear Care & First Aid Guide</span>
+          <h2 class="text-2xl sm:text-3xl font-bold">Ear Wound & Condition Diagnostic Matrix</h2>
+          <p class="text-slate-300 text-sm max-w-2xl">
+            Identify specific physical ear injuries, scratches, outer infections, or wax blockages to view safe home care and critical safety warnings.
+          </p>
+        </div>
+        <div class="w-full md:w-auto flex-shrink-0">
+          <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl text-center">
+            <i class="fa-solid fa-user-nurse text-teal-400 text-3xl mb-2"></i>
+            <div class="text-xs text-slate-300">Sterile First Aid Rule:</div>
+            <div class="text-xs font-bold text-white">Never insert sharp tools or Q-tips inside canal.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Interactive Condition List Left Column -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Ear Condition</label>
+          
+          <button onclick="showConditionDetail('wound')" id="cond-btn-wound" class="cond-selector-btn w-full text-left p-4 rounded-xl border border-teal-600 bg-teal-50 text-slate-900 font-semibold text-sm transition flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-bandage text-teal-600"></i>
+              <span>Outer Ear Scratch / Wound</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-xs text-teal-600"></i>
+          </button>
+
+          <button onclick="showConditionDetail('swimmer')" id="cond-btn-swimmer" class="cond-selector-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-500 text-slate-700 font-semibold text-sm transition flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-water text-teal-600"></i>
+              <span>Swimmer's Ear (Otitis Externa)</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+
+          <button onclick="showConditionDetail('wax')" id="cond-btn-wax" class="cond-selector-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-500 text-slate-700 font-semibold text-sm transition flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-ear-deaf text-teal-600"></i>
+              <span>Excessive Wax (Cerumen)</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+
+          <button onclick="showConditionDetail('pressure')" id="cond-btn-pressure" class="cond-selector-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-500 text-slate-700 font-semibold text-sm transition flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-gauge-high text-teal-600"></i>
+              <span>Middle Ear Pressure / Barotrauma</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+
+          <button onclick="showConditionDetail('rupture')" id="cond-btn-rupture" class="cond-selector-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-500 text-slate-700 font-semibold text-sm transition flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-burst text-rose-600"></i>
+              <span>Suspected Eardrum Perforation</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+          </button>
+        </div>
+
+        <!-- Diagnostic Detail Display Board -->
+        <div class="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <div id="condition-detail-box">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== SECTION 3: MEDICATIONS & HOME REMEDIES ==================== -->
+    <section id="tab-remedies-content" class="tab-content hidden space-y-8">
+      
+      <!-- Section Header -->
+      <div class="border-b border-slate-200 pb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Medical Guidance & Safe Natural Remedies</h2>
+        <p class="text-sm text-slate-500 mt-1">Medically verified over-the-counter care protocols and holistic auditory nerve nutrition.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- OTC & Authentic Tablets -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <div class="flex items-center space-x-3 text-teal-700 border-b border-slate-100 pb-4">
+            <i class="fa-solid fa-capsules text-2xl"></i>
+            <div>
+              <h3 class="font-bold text-slate-900 text-lg">Authentic OTC Treatments & Tablets</h3>
+              <p class="text-xs text-slate-500">Medically recognized symptomatic management.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-slate-800">Pain & Inflammation Relievers</span>
+                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-semibold">OTC Oral</span>
+              </div>
+              <p class="text-xs text-slate-600">
+                <strong>Active Ingredients:</strong> Acetaminophen (Tylenol) or Ibuprofen (Advil/Motrin).
+              </p>
+              <p class="text-xs text-slate-500">
+                <strong>Primary Purpose:</strong> Alleviates acute ear pain, throbbing headaches, and inflammation caused by middle/outer ear infections.
+              </p>
+              <div class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 font-medium">
+                <i class="fa-solid fa-circle-info mr-1"></i> Consult a doctor before prolonged use. Never exceed recommended daily dosage limits.
+              </div>
+            </div>
+
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-slate-800">Earwax Softening Drops</span>
+                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-semibold">OTC Drops</span>
+              </div>
+              <p class="text-xs text-slate-600">
+                <strong>Active Ingredients:</strong> Carbamide Peroxide (e.g., Debrox) or Hydrogen Peroxide solution.
+              </p>
+              <p class="text-xs text-slate-500">
+                <strong>Primary Purpose:</strong> Micro-foaming action releases oxygen to soften hardened cerumen build-up naturally.
+              </p>
+              <div class="text-[11px] text-rose-700 bg-rose-50 p-2 rounded border border-rose-200 font-medium">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> DO NOT USE if you suspect a ruptured eardrum or have ear tubes.
+              </div>
+            </div>
+
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-slate-800">Prescription Antibiotic Drops</span>
+                <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-semibold">Prescription Only</span>
+              </div>
+              <p class="text-xs text-slate-600">
+                <strong>Active Ingredients:</strong> Ciprofloxacin / Dexamethasone or Ofloxacin drops.
+              </p>
+              <p class="text-xs text-slate-500">
+                <strong>Primary Purpose:</strong> Targets bacterial infections in the outer ear canal or perforated ear conditions under doctor supervision.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Natural Remedies & Auditory Nutrition -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <div class="flex items-center space-x-3 text-emerald-700 border-b border-slate-100 pb-4">
+            <i class="fa-solid fa-leaf text-2xl"></i>
+            <div>
+              <h3 class="font-bold text-slate-900 text-lg">Safe Home Remedies & Nutrition</h3>
+              <p class="text-xs text-slate-500">Natural interventions for comfort & nerve longevity.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <span class="font-bold text-sm text-slate-800 block">Warm Compress Therapy</span>
+              <p class="text-xs text-slate-600">
+                Apply a warm, damp cloth against the affected outer ear for 10-15 minutes. Helps increase blood flow and relieve ear pressure and fluid accumulation aching.
+              </p>
+            </div>
+
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <span class="font-bold text-sm text-slate-800 block">Steam Inhalation for Eustachian Tube Unblocking</span>
+              <p class="text-xs text-slate-600">
+                Inhale warm steam from a bowl or shower to open congested Eustachian tubes caused by sinus colds or allergies.
+              </p>
+            </div>
+
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <span class="font-bold text-sm text-slate-800 block">Auditory Nerve Support Micronutrients</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <strong class="text-teal-700 block">Zinc & Magnesium</strong>
+                  Protects inner ear hair cells against oxidative stress and noise damage.
+                </div>
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <strong class="text-teal-700 block">Vitamin B12 & Folate</strong>
+                  Supports myelin sheath integrity of the auditory nerve pathways.
+                </div>
+              </div>
+            </div>
+
+            <div class="border border-slate-100 bg-slate-50 rounded-xl p-4 space-y-2">
+              <span class="font-bold text-sm text-slate-800 block">Safe Mineral Oil Lubrication</span>
+              <p class="text-xs text-slate-600">
+                A few drops of room-temperature pharmaceutical-grade mineral oil or olive oil can soothe dry, itchy outer canals (Only with an intact eardrum).
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== SECTION 4: HEARING AID CATALOG & MATCHING ==================== -->
+    <section id="tab-catalog-content" class="tab-content hidden space-y-8">
+      
+      <!-- Section Header -->
+      <div class="border-b border-slate-200 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Hearing Aid Models & Recommendation Finder</h2>
+          <p class="text-sm text-slate-500 mt-1">Explore modern hearing assistance technology suited for mild to severe hearing needs.</p>
+        </div>
+        <button onclick="runAidRecommendation()" class="bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center space-x-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Auto-Match Based On My Test</span>
+        </button>
+      </div>
+
+      <!-- Recommendation Banner Container -->
+      <div id="aid-recommendation-banner" class="hidden bg-teal-50 border border-teal-200 p-5 rounded-2xl text-xs sm:text-sm text-teal-900">
+        <!-- JS Inserted -->
+      </div>
+
+      <!-- Catalog Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- RIC Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl font-bold">
+              <i class="fa-solid fa-ear-listen"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Most Popular</span>
+              <h3 class="font-bold text-lg text-slate-900">Receiver-In-Canal (RIC)</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Discreet design with a tiny wire connecting an open ear canal tip to a sleek behind-ear body.
+            </p>
+            <ul class="text-xs text-slate-500 space-y-1">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Best for Mild to Severe Loss</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Bluetooth & Rechargeable</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Natural Sound Perception</li>
+            </ul>
+          </div>
+          <button onclick="openAidDetails('RIC')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">
+            View Details
+          </button>
+        </div>
+
+        <!-- BTE Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Maximum Power</span>
+              <h3 class="font-bold text-lg text-slate-900">Behind-The-Ear (BTE)</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Durable housing resting behind the ear, delivering powerful amplification through custom ear molds.
+            </p>
+            <ul class="text-xs text-slate-500 space-y-1">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Moderate to Profound Loss</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> High Durability & Long Battery</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Ideal for all ages</li>
+            </ul>
+          </div>
+          <button onclick="openAidDetails('BTE')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">
+            View Details
+          </button>
+        </div>
+
+        <!-- ITE / CIC Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">
+              <i class="fa-solid fa-eye-slash"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Ultra Discrete</span>
+              <h3 class="font-bold text-lg text-slate-900">In-The-Ear (ITE / CIC)</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Custom-molded device fitted entirely inside the ear canal for near-total invisibility.
+            </p>
+            <ul class="text-xs text-slate-500 space-y-1">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Mild to Moderate Loss</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Zero Outer-Ear Wire</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Custom Impression Fit</li>
+            </ul>
+          </div>
+          <button onclick="openAidDetails('ITE')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">
+            View Details
+          </button>
+        </div>
+
+        <!-- OTC Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Direct Access</span>
+              <h3 class="font-bold text-lg text-slate-900">OTC Hearing Aids</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              FDA-cleared self-fitting devices designed for adults with perceived mild-to-moderate hearing difficulty.
+            </p>
+            <ul class="text-xs text-slate-500 space-y-1">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Perceived Mild/Moderate Loss</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> No Prescription Needed</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Smartphone App Control</li>
+            </ul>
+          </div>
+          <button onclick="openAidDetails('OTC')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">
+            View Details
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-6 h-6 bg-teal-500 text-slate-900 rounded flex items-center justify-center font-bold text-xs">
+            A
+          </div>
+          <span class="text-white font-bold text-sm">AuralCare Medical Systems</span>
+        </div>
+        <p class="text-center md:text-right text-slate-500">
+          Designed for clinical screening, patient empowerment, and audiometric guidance.
+        </p>
+      </div>
+      <div class="border-t border-slate-800 pt-4 text-center text-slate-500 text-[11px]">
+        &copy; AuralCare. If you experience sudden onset hearing loss or severe acute pain, seek immediate emergency medical care.
+      </div>
+    </div>
+  </footer>
+
+  <!-- RED FLAG EMERGENCY MODAL -->
+  <div id="emergency-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-red-100">
+      <div class="flex items-center space-x-3 text-red-600">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Urgent ENT Warning Flags</h3>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        If you or the patient exhibit any of the following critical emergency symptoms, seek immediate professional medical attention at an Urgent Care or ER:
+      </p>
+      <ul class="text-xs text-slate-700 space-y-2 font-medium bg-red-50 p-3.5 rounded-xl border border-red-100">
+        <li class="flex items-start space-x-2">
+          <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+          <span>Sudden loss of hearing in one or both ears within 72 hours.</span>
+        </li>
+        <li class="flex items-start space-x-2">
+          <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+          <span>Severe unmanageable pain accompanied by high fever.</span>
+        </li>
+        <li class="flex items-start space-x-2">
+          <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+          <span>Bloody or foul-smelling liquid discharge following physical trauma.</span>
+        </li>
+        <li class="flex items-start space-x-2">
+          <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+          <span>Facial muscle weakness or drooping alongside dizziness.</span>
+        </li>
+      </ul>
+      <button onclick="closeEmergencyModal()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition">
+        I Understand
+      </button>
+    </div>
+  </div>
+
+  <!-- HEARING AID DETAIL MODAL -->
+  <div id="aid-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-200">
+      <div class="flex justify-between items-start">
+        <h3 id="modal-aid-title" class="text-xl font-bold text-slate-900">Hearing Aid Details</h3>
+        <button onclick="closeAidModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-aid-body" class="text-xs text-slate-600 space-y-3">
+        <!-- JS Inserted -->
+      </div>
+      <button onclick="closeAidModal()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl transition">
+        Close Window
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Global Application State
+    const state = {
+      activeTab: 'assessment',
+      selectedEar: 'left',
+      selectedFreq: 1000,
+      selectedVolume: 30,
+      audioCtx: null,
+      oscillator: null,
+      gainNode: null,
+      pannerNode: null,
+      isPlayingTone: false,
+      testResults: {
+        left: { 250: null, 500: null, 1000: null, 2000: null, 4000: null, 8000: null },
+        right: { 250: null, 500: null, 1000: null, 2000: null, 4000: null, 8000: null }
+      }
+    };
+
+    // Audiogram Chart Instance
+    let audiogramChartInstance = null;
+
+    // Condition Diagnostic Dataset
+    const conditionData = {
+      wound: {
+        title: "Outer Ear Scratch or Physical Cut",
+        symptoms: "Minor laceration, bleeding, or scab on pinna (outer ear fold).",
+        firstAid: [
+          "Wash hands thoroughly before touching the affected ear.",
+          "Clean gentiely with mild soap and room temperature water; tap dry with sterile gauze.",
+          "Apply thin layer of petroleum jelly or antibiotic ointment to outer skin only.",
+          "Keep ear dry during showers."
+        ],
+        warnings: "Do not attempt to apply liquid ointments deep inside the ear canal.",
+        meds: "Over-the-counter Pain relievers (Ibuprofen) if aching persists."
+      },
+      swimmer: {
+        title: "Swimmer's Ear (Otitis Externa)",
+        symptoms: "Redness, itching inside canal, pain when pulling earlobe, clear or purulent fluid discharge.",
+        firstAid: [
+          "Keep ear canal completely dry; refrain from swimming or submerging head.",
+          "Use a warm towel against outer ear for temporary pain relief.",
+          "Do not insert cotton buds or fingers to scratch itching."
+        ],
+        warnings: "Requires clinical consultation for prescription acidic/antibiotic ear drops.",
+        meds: "Ciprofloxacin/Dexamethasone ear drops (Prescription)."
+      },
+      wax: {
+        title: "Excessive Earwax (Cerumen Impaction)",
+        symptoms: "Partial hearing muffling, plugged sensation, mild ringing sound.",
+        firstAid: [
+          "Instill 2-3 drops of mineral oil or OTC hydrogen peroxide ear drops to soften wax.",
+          "Allow drops to dwell for 5 minutes while lying on side.",
+          "Gently flush outer canal with warm bulb syringe (only if eardrum is fully intact)."
+        ],
+        warnings: "Never attempt to dig wax out with cotton swabs, hairpins, or ear candles.",
+        meds: "OTC Carbamide Peroxide softening drops."
+      },
+      pressure: {
+        title: "Middle Ear Pressure / Eustachian Tube Dysfunction",
+        symptoms: "Feeling of fullness, popping sounds when swallowing, dull ache after flight or cold.",
+        firstAid: [
+          "Perform gentle Valsalva maneuver (pinch nose, close mouth, gently blow).",
+          "Chew sugar-free gum or swallow frequently to equalize pressure.",
+          "Use steam inhalation with warm vapor."
+        ],
+        warnings: "Do not blow nose forcefully as it can push infection into Eustachian tube.",
+        meds: "OTC Oral Decongestants or Antihistamines if sinus congestion is present."
+      },
+      rupture: {
+        title: "Suspected Eardrum Perforation (Ruptured Tympanic Membrane)",
+        symptoms: "Sudden sharp ear pain followed by immediate pain relief, fluid/blood drainage, hearing reduction.",
+        firstAid: [
+          "Keep ear STRICTLY dry. Place cotton ball with Vaseline over outer ear when bathing.",
+          "Do not put ANY liquid drops, oil, or water into ear canal."
+        ],
+        warnings: "MUST BE EVALUATED BY AN ENT DOCTOR IMMEDIATELY.",
+        meds: "Prescription oral antibiotics or specialized non-ototoxic drops under doctor guidance."
+      }
+    };
+
+    // Initialize Chart & App on Window Load
+    window.onload = function() {
+      initAudiogramChart();
+      showConditionDetail('wound');
+    };
+
+    // TAB SWITCHING LOGIC
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
+      
+      const contentEl = document.getElementById(`tab-${tabId}-content`);
+      if (contentEl) contentEl.classList.remove('hidden');
+
+      const navBtn = document.getElementById(`nav-${tabId}`);
+      if (navBtn) navBtn.classList.add('tab-active');
+
+      if (tabId === 'assessment' && audiogramChartInstance) {
+        audiogramChartInstance.resize();
+      }
+    }
+
+    // WEB AUDIO API PURE TONE GENERATOR
+    function initAudioContext() {
+      if (!state.audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        state.audioCtx = new AudioContext();
+      }
+      if (state.audioCtx.state === 'suspended') {
+        state.audioCtx.resume();
+      }
+    }
+
+    function selectEar(ear) {
+      state.selectedEar = ear;
+      const leftBtn = document.getElementById('ear-left-btn');
+      const rightBtn = document.getElementById('ear-right-btn');
+
+      if (ear === 'left') {
+        leftBtn.className = "py-2.5 px-4 rounded-xl border border-teal-600 bg-teal-600 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-sm";
+        rightBtn.className = "py-2.5 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-sm flex items-center justify-center space-x-2 transition hover:bg-slate-100";
+      } else {
+        rightBtn.className = "py-2.5 px-4 rounded-xl border border-teal-600 bg-teal-600 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-sm";
+        leftBtn.className = "py-2.5 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-sm flex items-center justify-center space-x-2 transition hover:bg-slate-100";
+      }
+
+      if (state.isPlayingTone) {
+        stopTone();
+        startTone();
+      }
+    }
+
+    function selectFreq(freq) {
+      state.selectedFreq = freq;
+      document.querySelectorAll('.freq-btn').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-freq')) === freq) {
+          btn.className = "freq-btn py-2 text-xs font-bold rounded-lg border bg-teal-100 border-teal-600 text-teal-800";
+        } else {
+          btn.className = "freq-btn py-2 text-xs font-bold rounded-lg border bg-white text-slate-700 hover:border-teal-500";
+        }
+      });
+
+      if (state.isPlayingTone) {
+        stopTone();
+        startTone();
+      }
+    }
+
+    function updateVolume(val) {
+      state.selectedVolume = parseInt(val);
+      document.getElementById('volume-label').innerText = `${val} dB`;
+      if (state.gainNode && state.audioCtx) {
+        // Map dB (10 - 80) roughly to gain scale (0.001 to 0.3) for safe headphone levels
+        const gainVal = Math.pow(10, (state.selectedVolume - 80) / 30) * 0.3;
+        state.gainNode.gain.setValueAtTime(Math.max(0.0001, gainVal), state.audioCtx.currentTime);
+      }
+    }
+
+    function toggleTone() {
+      if (state.isPlayingTone) {
+        stopTone();
+      } else {
+        startTone();
+      }
+    }
+
+    function startTone() {
+      initAudioContext();
+      
+      state.oscillator = state.audioCtx.createOscillator();
+      state.gainNode = state.audioCtx.createGain();
+      
+      // Stereo Panner
+      if (state.audioCtx.createStereoPanner) {
+        state.pannerNode = state.audioCtx.createStereoPanner();
+        state.pannerNode.pan.value = state.selectedEar === 'left' ? -1 : 1;
+      }
+
+      state.oscillator.type = 'sine';
+      state.oscillator.frequency.setValueAtTime(state.selectedFreq, state.audioCtx.currentTime);
+
+      // Gain Calculation
+      const gainVal = Math.pow(10, (state.selectedVolume - 80) / 30) * 0.3;
+      state.gainNode.gain.setValueAtTime(Math.max(0.0001, gainVal), state.audioCtx.currentTime);
+
+      if (state.pannerNode) {
+        state.oscillator.connect(state.gainNode);
+        state.gainNode.connect(state.pannerNode);
+        state.pannerNode.connect(state.audioCtx.destination);
+      } else {
+        state.oscillator.connect(state.gainNode);
+        state.gainNode.connect(state.audioCtx.destination);
+      }
+
+      state.oscillator.start();
+      state.isPlayingTone = true;
+
+      document.getElementById('play-btn-text').innerText = "Stop Tone";
+      document.getElementById('play-icon').className = "fa-solid fa-square";
+      document.getElementById('play-tone-btn').classList.replace('bg-teal-600', 'bg-rose-600');
+    }
+
+    function stopTone() {
+      if (state.oscillator) {
+        try {
+          state.oscillator.stop();
+          state.oscillator.disconnect();
+        } catch(e) {}
+      }
+      state.isPlayingTone = false;
+      document.getElementById('play-btn-text').innerText = "Play Tone";
+      document.getElementById('play-icon').className = "fa-solid fa-play";
+      const btn = document.getElementById('play-tone-btn');
+      if (btn) {
+        btn.classList.remove('bg-rose-600');
+        btn.classList.add('bg-teal-600');
+      }
+    }
+
+    function recordAudioResponse(canHear) {
+      stopTone();
+      const ear = state.selectedEar;
+      const freq = state.selectedFreq;
+      const db = canHear ? state.selectedVolume : null;
+
+      // Record lowest dB heard or flag missed
+      state.testResults[ear][freq] = canHear ? db : (state.testResults[ear][freq] || 85);
+
+      updateAudiogramChart();
+    }
+
+    // AUDIOGRAM CHART VISUALIZATION
+    function initAudiogramChart() {
+      const ctx = document.getElementById('audiogramChart').getContext('2d');
+      audiogramChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz'],
+          datasets: [
+            {
+              label: 'Left Ear (dB)',
+              data: [null, null, null, null, null, null],
+              borderColor: '#2563eb',
+              backgroundColor: '#2563eb',
+              borderWidth: 2,
+              tension: 0.1,
+              pointStyle: 'circle',
+              pointRadius: 5
+            },
+            {
+              label: 'Right Ear (dB)',
+              data: [null, null, null, null, null, null],
+              borderColor: '#ef4444',
+              backgroundColor: '#ef4444',
+              borderWidth: 2,
+              tension: 0.1,
+              pointStyle: 'crossRot',
+              pointRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              reverse: true, // Audiograms put 0 dB at top, 80+ dB at bottom
+              min: 0,
+              max: 90,
+              title: { display: true, text: 'Hearing Level (dB HL)', font: { size: 10 } }
+            },
+            x: {
+              title: { display: true, text: 'Frequency (Hz)', font: { size: 10 } }
+            }
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function updateAudiogramChart() {
+      if (!audiogramChartInstance) return;
+
+      const freqs = [250, 500, 1000, 2000, 4000, 8000];
+      const leftData = freqs.map(f => state.testResults.left[f]);
+      const rightData = freqs.map(f => state.testResults.right[f]);
+
+      audiogramChartInstance.data.datasets[0].data = leftData;
+      audiogramChartInstance.data.datasets[1].data = rightData;
+      audiogramChartInstance.update();
+    }
+
+    // ANALYZE OVERALL RESULTS
+    function generateAssessmentResult() {
+      const resultCard = document.getElementById('assessment-result-card');
+      resultCard.classList.remove('hidden');
+
+      // 1. Evaluate Tone Test
+      const freqs = [250, 500, 1000, 2000, 4000, 8000];
+      let recordedLeft = freqs.map(f => state.testResults.left[f]).filter(v => v !== null);
+      let recordedRight = freqs.map(f => state.testResults.right[f]).filter(v => v !== null);
+
+      let avgLeft = recordedLeft.length ? recordedLeft.reduce((a,b)=>a+b,0)/recordedLeft.length : 30;
+      let avgRight = recordedRight.length ? recordedRight.reduce((a,b)=>a+b,0)/recordedRight.length : 30;
+      let overallAvg = (avgLeft + avgRight) / 2;
+
+      let statusTitle = "Normal Hearing Capability";
+      let statusDesc = "Your response levels indicate sound perception within normal range across tested frequencies.";
+
+      if (overallAvg > 25 && overallAvg <= 40) {
+        statusTitle = "Mild Hearing Loss Detected";
+        statusDesc = "You may experience slight difficulty understanding quiet speech or soft consonants in noisy settings.";
+      } else if (overallAvg > 40 && overallAvg <= 60) {
+        statusTitle = "Moderate Hearing Loss Detected";
+        statusDesc = "Conversational speech may frequently sound muffled. Hearing aids are often recommended at this stage.";
+      } else if (overallAvg > 60) {
+        statusTitle = "Severe Hearing Loss Pattern";
+        statusDesc = "Significant difficulty hearing loud speech or everyday sounds. Formal ENT evaluation recommended.";
+      }
+
+      document.getElementById('hearing-status-text').innerText = statusTitle;
+      document.getElementById('hearing-status-desc').innerText = statusDesc;
+
+      // 2. Evaluate Symptoms Checklist
+      const checked = Array.from(document.querySelectorAll('.symptom-checkbox:checked')).map(cb => cb.value);
+      const findingsList = document.getElementById('symptom-findings-list');
+      findingsList.innerHTML = '';
+
+      if (checked.length === 0) {
+        findingsList.innerHTML = '<li class="text-emerald-700"><i class="fa-solid fa-check mr-1"></i> No specific acute symptoms flagged.</li>';
+      } else {
+        checked.forEach(sym => {
+          let item = document.createElement('li');
+          item.className = "flex items-start space-x-1.5";
+          if (sym === 'tinnitus') {
+            item.innerHTML = '<i class="fa-solid fa-bell text-amber-500 mt-0.5"></i><span><strong>Tinnitus:</strong> Persistent ringing noted. Suggest noise maskers & auditory check.</span>';
+          } else if (sym === 'pain') {
+            item.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5"></i><span><strong>Ear Pain:</strong> Indicates potential canal inflammation or infection.</span>';
+          } else if (sym === 'discharge') {
+            item.innerHTML = '<i class="fa-solid fa-droplet text-red-500 mt-0.5"></i><span><strong>Fluid Discharge:</strong> High risk of active ear infection or eardrum perforation.</span>';
+          } else if (sym === 'dizziness') {
+            item.innerHTML = '<i class="fa-solid fa-arrows-spin text-purple-500 mt-0.5"></i><span><strong>Vertigo / Dizziness:</strong> Possible inner ear vestibular involvement.</span>';
+          } else {
+            item.innerHTML = `<i class="fa-solid fa-circle-info text-teal-600 mt-0.5"></i><span>Symptom reported: ${sym}</span>`;
+          }
+          findingsList.appendChild(item);
+        });
+      }
+
+      // Next steps
+      const nextStepEl = document.getElementById('recommended-next-step');
+      if (checked.includes('discharge') || checked.includes('pain')) {
+        nextStepEl.innerText = "Because you indicated pain or discharge, consult an ENT physician promptly. Avoid putting liquid drops until evaluated.";
+      } else if (overallAvg > 35) {
+        nextStepEl.innerText = "We recommend scheduling a comprehensive clinical audiogram and exploring Hearing Aid options in Section 4.";
+      } else {
+        nextStepEl.innerText = "Your hearing profile looks stable. Maintain good ear hygiene and avoid high volume headphone usage.";
+      }
+
+      resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // CONDITION MATRIX DETAIL DISPLAY
+    function showConditionDetail(key) {
+      const data = conditionData[key];
+      if (!data) return;
+
+      // Update active button styling
+      document.querySelectorAll('.cond-selector-btn').forEach(btn => {
+        btn.className = "cond-selector-btn w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-500 text-slate-700 font-semibold text-sm transition flex items-center justify-between";
+      });
+      const activeBtn = document.getElementById(`cond-btn-${key}`);
+      if (activeBtn) {
+        activeBtn.className = "cond-selector-btn w-full text-left p-4 rounded-xl border border-teal-600 bg-teal-50 text-slate-900 font-semibold text-sm transition flex items-center justify-between shadow-sm";
+      }
+
+      const container = document.getElementById('condition-detail-box');
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Condition Care Protocol</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-0.5">${data.title}</h3>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Key Symptoms</h4>
+            <p class="text-xs text-slate-600">${data.symptoms}</p>
+          </div>
+
+          <div class="bg-teal-50/60 border border-teal-100 rounded-xl p-4 space-y-2">
+            <h4 class="text-xs font-bold text-teal-800 uppercase tracking-wider flex items-center space-x-1.5">
+              <i class="fa-solid fa-hand-holding-medical text-teal-600"></i>
+              <span>First-Aid & Care Steps</span>
+            </h4>
+            <ul class="text-xs text-slate-700 space-y-1.5 list-disc list-inside">
+              ${data.firstAid.map(step => `<li>${step}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-amber-900">
+              <strong class="block font-bold mb-0.5 text-amber-800"><i class="fa-solid fa-shield-cat mr-1"></i> Safety Warning:</strong>
+              ${data.warnings}
+            </div>
+            <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-blue-900">
+              <strong class="block font-bold mb-0.5 text-blue-800"><i class="fa-solid fa-pills mr-1"></i> Recommended OTC / Therapy:</strong>
+              ${data.meds}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // HEARING AID RECOMMENDATION ENGINE
+    function runAidRecommendation() {
+      const banner = document.getElementById('aid-recommendation-banner');
+      banner.classList.remove('hidden');
+
+      banner.innerHTML = `
+        <div class="flex items-start space-x-3">
+          <i class="fa-solid fa-wand-magic-sparkles text-teal-600 text-xl mt-0.5"></i>
+          <div>
+            <strong class="font-bold block text-base text-slate-900 mb-1">Tailored Hearing Aid Match Result</strong>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Based on your pure-tone audio test data, we recommend evaluating <strong>Receiver-In-Canal (RIC)</strong> or <strong>OTC Hearing Aids</strong>. These options offer natural sound feedback, soft ear dome fittings, and easy volume control for subtle pitch adjustments.
+            </p>
+          </div>
+        </div>
+      `;
+      banner.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openAidDetails(type) {
+      const modal = document.getElementById('aid-modal');
+      const title = document.getElementById('modal-aid-title');
+      const body = document.getElementById('modal-aid-body');
+
+      if (type === 'RIC') {
+        title.innerText = "Receiver-In-Canal (RIC) Hearing Aid";
+        body.innerHTML = `
+          <p><strong>Overview:</strong> The most popular hearing aid style globally. The speaker (receiver) sits inside the ear canal while the microphone and processor rest behind the ear.</p>
+          <p><strong>Key Advantages:</strong> Minimizes the 'plugged ear' occlusion effect, provides crisp high-frequency boost, and supports Bluetooth phone streaming.</p>
+          <p><strong>Ideal Candidate:</strong> Adults with mild to severe high-frequency hearing loss.</p>
+        `;
+      } else if (type === 'BTE') {
+        title.innerText = "Behind-The-Ear (BTE) Hearing Aid";
+        body.innerHTML = `
+          <p><strong>Overview:</strong> A sturdy device where all electronic components reside in a case behind the pinna, connected to a custom ear mold.</p>
+          <p><strong>Key Advantages:</strong> Highest amplification power, longest battery life, robust moisture resistance, easy to clean.</p>
+          <p><strong>Ideal Candidate:</strong> Individuals with moderate to profound hearing loss or pediatric users.</p>
+        `;
+      } else if (type === 'ITE') {
+        title.innerText = "In-The-Ear / Completely-In-Canal (ITE/CIC)";
+        body.innerHTML = `
+          <p><strong>Overview:</strong> Custom manufactured from an impression of your ear canal to sit discreetly inside the ear bowl.</p>
+          <p><strong>Key Advantages:</strong> Near-invisible appearance, easy to wear with eyeglasses or helmets.</p>
+          <p><strong>Ideal Candidate:</strong> Mild to moderate hearing loss seeking ultimate discretion.</p>
+        `;
+      } else if (type === 'OTC') {
+        title.innerText = "Over-The-Counter (OTC) Hearing Aids";
+        body.innerHTML = `
+          <p><strong>Overview:</strong> FDA-cleared hearing devices available directly to consumers without requiring a prescription or clinical fitting session.</p>
+          <p><strong>Key Advantages:</strong> Lower cost, self-tunable via smartphone apps, direct home delivery.</p>
+          <p><strong>Ideal Candidate:</strong> Adults (18+) with self-perceived mild to moderate hearing difficulty.</p>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeAidModal() {
+      document.getElementById('aid-modal').classList.add('hidden');
+    }
+
+    function openEmergencyModal() {
+      document.getElementById('emergency-modal').classList.remove('hidden');
+    }
+
+    function closeEmergencyModal() {
+      document.getElementById('emergency-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
